@@ -44,7 +44,12 @@
           </form>
 
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="{{ url_for('posts.create_post') }}">+ New Post</a></li>
+{#            <li><a href="{{ url_for('posts.create_post') }}">+ New Post</a></li>#}
+              <li>
+                  {% if current_user.has_role('admin') %}
+                      <a href="/admin">Admin</a>
+                  {% endif %}
+              </li>
 
           </ul>
         </div><!-- /.navbar-collapse -->
