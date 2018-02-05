@@ -7,6 +7,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 
 from flask_admin import Admin
+from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
 
 from flask_security import SQLAlchemyUserDatastore, Security, current_user
@@ -27,18 +28,41 @@ manager.add_command('db', MigrateCommand)
 from models import *
 
 
-class AdminView(ModelView):
+class AdminMix:
 
     def is_accessible(self):
         return current_user.has_role('admin')
 
-    def inaccessible_callback(self, **kwargs):
+    def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('security.login', next=request.url))
 
 
-admin = Admin(app)
-admin.add_view(AdminView(Post, db.session))
-admin.add_view(AdminView(Tag, db.session))
+class BaseModelView(ModelView):
+
+    def on_model_change(self, form, model, is_created):
+        model.generate_slug()
+        return super(BaseModelView, self).on_model_change(form, model, is_created)
+
+
+class AdminView(AdminMix, ModelView):
+    pass
+
+
+class HomeAdminView(AdminMix, AdminIndexView):
+    pass
+
+
+class PostAdminView(AdminMix, BaseModelView):
+    form_columns = ['title', 'body']
+
+
+class TagAdminView(AdminMix, BaseModelView):
+    form_columns = ['name']
+
+
+admin = Admin(app, 'FlaskApp', url='/', index_view=HomeAdminView(name='Home'))
+admin.add_view(PostAdminView(Post, db.session))
+admin.add_view(TagAdminView(Tag, db.session))
 
 # Security
 
