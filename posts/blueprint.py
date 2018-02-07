@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask import render_template
 
 from models import Post, Tag
-from .forms import PostForm
+from .forms import PostForm, TagForm
 
 from flask import request
 from app import db
@@ -15,7 +15,7 @@ from flask_security import login_required
 posts = Blueprint('posts', __name__, template_folder='templates')
 
 
-@posts.route('/create', methods=['POST', 'GET'])
+@posts.route('/create-post', methods=['POST', 'GET'])
 @login_required
 def create_post():
 
@@ -33,6 +33,31 @@ def create_post():
 
     form = PostForm()
     return render_template('posts/create_post.html', form=form)
+
+
+@posts.route('/create-tag', methods=['POST', 'GET'])
+@login_required
+def create_tag():
+
+    if request.method == 'POST':
+        name = request.form['name']
+
+        try:
+            tag = Tag(name=name)
+            db.session.add(tag)
+            db.session.commit()
+        except:
+            print('Something')
+        return redirect(url_for('posts.all_tags'))
+
+    form = TagForm()
+    return render_template('posts/create_tag.html', form=form)
+
+
+@posts.route('/all-tags')
+def all_tags():
+    tags = Tag.query.order_by(Tag.name.desc())
+    return render_template('posts/all_tags.html', tags=tags)
 
 
 @posts.route('/<slug>/edit/', methods=['POST', 'GET'])
