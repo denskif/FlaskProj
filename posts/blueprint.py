@@ -1,7 +1,7 @@
 from flask import Blueprint
 from flask import render_template
 
-from models import Post, Tag
+from models import Post, Tag, post_tags
 from .forms import PostForm, TagForm
 
 from flask import request
@@ -29,10 +29,44 @@ def create_post():
             db.session.commit()
         except:
             print('Something')
-        return redirect(url_for('posts.blueprint'))
+        post_delivery = Post.query.filter(Post.slug == post.slug).first_or_404()
+        return redirect(url_for('posts.want_tag', slug=post_delivery.slug))
 
     form = PostForm()
     return render_template('posts/create_post.html', form=form)
+
+
+@posts.route('/<slug>/want-tag', methods=['POST', 'GET'])
+@login_required
+def want_tag(slug):
+    post = Post.query.filter(Post.slug == slug).first_or_404()
+    return render_template('posts/want_tag.html', post=post)
+
+
+@posts.route('/<slug>/choose-tag')
+@login_required
+def choose_tag(slug):
+    tags = Tag.query.order_by(Tag.name.desc())
+    post = Post.query.filter(Post.slug == slug).first_or_404()
+    post_title = post.title
+    return render_template('posts/choose_tag.html', post_title=post_title, tags=tags)
+
+
+# Don`t working SUKA
+@posts.route('/<slug>/save-tag/<post>', methods=['POST', 'GET'])
+@login_required
+def save_tag(slug, post):
+
+    tag = Tag.query.filter(Tag.slug == slug)
+    post = Post.query.filter(Post.title == post)
+    post = post.first()
+    try:
+        post.tags.append(tag)
+        db.session.add(post)
+        db.session.commit()
+    except:
+        print('Something')
+    return redirect(url_for('posts.blueprint'))
 
 
 @posts.route('/create-tag', methods=['POST', 'GET'])
