@@ -22,18 +22,25 @@ def create_post():
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
+        tag_name = request.form['tags']
 
         try:
             post = Post(title=title, body=body)
             db.session.add(post)
             db.session.commit()
+            tag = Tag.query.filter(Tag.name == tag_name).first()
+            post = Post.query.filter(Post.title == title).first()
+            post.tags.append(tag)
+            db.session.add(post)
+            db.session.commit()
         except:
             print('Something')
-        post_delivery = Post.query.filter(Post.slug == post.slug).first_or_404()
-        return redirect(url_for('posts.want_tag', slug=post_delivery.slug))
+        return render_template('index.html')
 
     form = PostForm()
-    return render_template('posts/create_post.html', form=form)
+    tags = Tag.query.order_by(Tag.name).all()
+    form.tags.choices = [(tags[key], tags[key]) for key in range(len(tags))]
+    return render_template('posts/create_post.html', form=form, tags=tags)
 
 
 @posts.route('/<slug>/want-tag', methods=['POST', 'GET'])
@@ -98,15 +105,17 @@ def all_tags():
 @login_required
 def edit_post(slug):
     post = Post.query.filter(Post.slug == slug).first_or_404()
+    tags = post.tags
 
     if request.method == 'POST':
-        form = PostForm(formdata=request.form, obj=post)
-        form.populate_obj(post)
-        db.session.commit()
-        return redirect(url_for('posts.post_detail', slug=post.slug))
+        if request.form.get('title') or request.form.get('body'):
+            post.title = request.form['title']
+            post.body = request.form['body']
+            db.session.commit()
+            return redirect(url_for('posts.post_detail', slug=post.slug))
 
     form = PostForm(obj=post)
-    return render_template('posts/edit_post.html', post=post, form=form)
+    return render_template('posts/edit_post.html', post=post, form=form, tags=tags)
 
 
 @posts.route('/')

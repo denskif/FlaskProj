@@ -53,7 +53,7 @@ class HomeAdminView(AdminMix, AdminIndexView):
 
 
 class PostAdminView(AdminMix, BaseModelView):
-    form_columns = ['title', 'body']
+    form_columns = ['title', 'body', 'tags']
 
 
 class TagAdminView(AdminMix, BaseModelView):

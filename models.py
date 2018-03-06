@@ -4,6 +4,7 @@ import re
 
 from flask_security import UserMixin, RoleMixin
 
+
 def slugify(s):
     pattern = r'[^\w+]'
     return re.sub(pattern, '-', s)
@@ -46,7 +47,7 @@ class Tag(db.Model):
         self.slug = slugify(self.name)
 
     def __repr__(self):
-        return '<Tag id: {}, name: {}>'.format(self.id, self.name)
+        return '{}'.format(self.name)
 
 # Security
 

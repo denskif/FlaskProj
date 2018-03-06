@@ -13,12 +13,14 @@
     {{ post.body }}
     <div class="tag">
         {% for tag in tags %}
+            </br>
             <a href="{{ url_for('posts.tag_detail', slug=tag.slug) }}"><span class="label label-primary">{{ tag.name }}</span></a>
         {% endfor %}
     </div>
 
     <div>
         {% if current_user.has_role('admin') %}
+            </br>
             <a href="{{ url_for('posts.edit_post', slug=post.slug) }}"><button class="btn btn-success">Edit</button></a>
         {% endif %}
     </div>
