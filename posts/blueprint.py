@@ -27,7 +27,6 @@ def create_post():
         try:
             post = Post(title=title, body=body)
             db.session.add(post)
-            db.session.commit()
             tag = Tag.query.filter(Tag.name == tag_name).first()
             post = Post.query.filter(Post.title == title).first()
             post.tags.append(tag)
@@ -35,45 +34,12 @@ def create_post():
             db.session.commit()
         except:
             print('Something')
-        return render_template('index.html')
+        return redirect(url_for('posts.blueprint'))
 
     form = PostForm()
     tags = Tag.query.order_by(Tag.name).all()
     form.tags.choices = [(tags[key], tags[key]) for key in range(len(tags))]
     return render_template('posts/create_post.html', form=form, tags=tags)
-
-
-@posts.route('/<slug>/want-tag', methods=['POST', 'GET'])
-@login_required
-def want_tag(slug):
-    post = Post.query.filter(Post.slug == slug).first_or_404()
-    return render_template('posts/want_tag.html', post=post)
-
-
-@posts.route('/<slug>/choose-tag')
-@login_required
-def choose_tag(slug):
-    tags = Tag.query.order_by(Tag.name.desc())
-    post = Post.query.filter(Post.slug == slug).first_or_404()
-    post_title = post.title
-    return render_template('posts/choose_tag.html', post_title=post_title, tags=tags)
-
-
-# Don`t working SUKA
-@posts.route('/<slug>/save-tag/<post>', methods=['POST', 'GET'])
-@login_required
-def save_tag(slug, post):
-
-    tag = Tag.query.filter(Tag.slug == slug)
-    post = Post.query.filter(Post.title == post)
-    post = post.first()
-    try:
-        post.tags.append(tag)
-        db.session.add(post)
-        db.session.commit()
-    except:
-        print('Something')
-    return redirect(url_for('posts.blueprint'))
 
 
 @posts.route('/create-tag', methods=['POST', 'GET'])
